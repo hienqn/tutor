@@ -7,7 +7,7 @@ Where a Notion topic lives, how upstream's workspace files map onto Notion, and 
 A private page titled `Tutor`, holding two databases:
 
 - **Topics**: one row per Notion topic. Properties: Name (title), Status (select: Active, Paused, Done, Moved), Started (date). Each row's page is that topic's workspace.
-- **Review**: every card, from every topic. Properties: Prompt (title), Answer (rich_text), Topic (relation to Topics), Lesson (url), Interval (number), Last result (select: correct, partial, wrong), Last drilled (date), Created (created_time), and Due, a formula: `if(empty(prop("Last drilled")), dateAdd(prop("Created"), 1, "days"), dateAdd(prop("Last drilled"), prop("Interval"), "days"))`. A card is due when Due is today or earlier.
+- **Review**: every card, from every topic. Properties: Prompt (title), Answer (rich_text), Topic (relation to Topics), Lesson (url), Interval (number), Last result (select: correct, partial, wrong), Last confidence (select: sure, unsure, guess), Last drilled (date), Created (created_time), and Due, a formula: `if(empty(prop("Last drilled")), dateAdd(prop("Created"), 1, "days"), dateAdd(prop("Last drilled"), prop("Interval"), "days"))`. A card is due when Due is today or earlier.
 - **Start here**: a page beside the two databases for any agent arriving fresh. It links this repo, says how to begin, and lists the ids (below).
 
 ## Topic page

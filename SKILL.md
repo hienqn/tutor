@@ -60,7 +60,12 @@ Lessons live in the topic's Lessons database (`LESSONS.md` in the vault, a table
 
 ## Drills and cards
 
-A **drill** is retrieval in chat: ask one card's prompt, wait for my answer, grade it, then give the answer with its citation. Practice toggles train me but you never see how I did, so only my answers in chat count as evidence that I understand something. A wrong answer that exposes a misconception becomes upstream's highest-value record once it is corrected.
+A **drill** is retrieval in chat: ask one card's prompt, wait for my answer, grade it, then give the answer with its citation. Practice toggles train me but you never see how I did, so only my answers in chat count as evidence that I understand something. A wrong answer that exposes a misconception becomes upstream's highest-value record once it is corrected. Four rules shape every drill, and the confidence rule holds for practice prompts answered in chat too:
+
+1. **Confidence first.** With each answer I mark how sure I am: sure, unsure or guess (a choice in a form, a word otherwise). A wrong answer I was sure of is a misconception: correct it, write its learning record, and say so. Over time the marks show whether my sense of what I know is accurate.
+2. **A new case each time.** Ask a card as written the first time it is drilled. After that, restate it around a different case (another protocol, service or set of numbers) that tests the same idea, and grade against the card's Answer. When I miss a varied version, ask it once more as written, to tell a gap in the idea from a gap in carrying it over.
+3. **Relearn before the session ends.** A card I get partly or fully wrong goes back in the queue and comes again, in a new case, after the other due cards, until I get it right once. Only the first attempt of the session sets its Last result and Interval.
+4. **One thing per card.** A card asks for exactly one fact, step or distinction. A prompt that asks two things (which X, and why Y) becomes two cards when a lesson's practice prompts turn into cards; each half keeps the parent's schedule.
 
 A **card** is one retrieval prompt, stored in the Review database (Notion, where each card also carries its Topic) or as a row of the table in `REVIEW.md` (vault), whose columns are these fields in order:
 
@@ -72,6 +77,7 @@ A **card** is one retrieval prompt, stored in the Review database (Notion, where
 | Interval | Days until the next drill |
 | Due | Date of the next drill (computed in Notion, below) |
 | Last result | `correct`, `partial` or `wrong` |
+| Last confidence | `sure`, `unsure` or `guess`, as I marked it on that attempt |
 | Last drilled | Date of the last drill |
 
 A new card starts at interval 1, due tomorrow. After a drill, `correct` doubles the interval, `partial` keeps it, and `wrong` resets it to 1, and Last drilled becomes today. In Notion, Due is a formula (Last drilled plus Interval, or the card's creation day plus 1 before its first drill), so write Interval, Last result and Last drilled and never Due; in `REVIEW.md`, write Due as today plus the interval. Shuffling a topic's cards mixes prompts from different lessons, which is upstream's interleaving.
