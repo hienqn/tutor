@@ -1,0 +1,284 @@
+<!--
+  Route map template for a /tutor course topic. Replace each placeholder, then publish as a private Artifact with capabilities {"db": {}}:
+  __PAGE_TITLE__   the page name, e.g. "CS 168 Route Map"
+  __EYEBROW__      the course line above the title
+  __LESSONS__      JSON array of {n, t, u, url}: lesson number, title without the number, unit labels, Notion page URL
+  __LINES__        JSON array of {id, name, c, from, to, covers}: one per course section; c is a --l-* colour token
+  __DESTINATIONS__ JSON array of {name, lessons}: one per mission success item, with the lesson numbers that reach it
+  __OFF_MAP__      JSON array of [unit, title] pairs for out-of-scope units
+  Progress comes from the artifact's progress collection; see COURSE.md.
+-->
+<title>__PAGE_TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a transit map. Each section of the course is a line, each lesson a station; summary bar, mission destinations, then the lines in a wrapping grid. */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --fg: #141922;
+  --muted: #5d6675;
+  --rule: #d9dee6;
+  --track-planned: #ffffff;
+  --l-found: #2a64d4;
+  --l-route: #c9701c;
+  --l-trans: #178a5c;
+  --l-apps: #a63c8f;
+  --l-e2e: #bf3434;
+  --l-dc: #5157c2;
+  --l-finish: #0b7480;
+  --font-display: "Overpass", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f131a; --panel: #171c25; --fg: #e8ecf2; --muted: #9aa4b4; --rule: #2a313d; --track-planned: #171c25;
+    --l-found: #6b9cf5; --l-route: #f0a052; --l-trans: #4cc792; --l-apps: #de7cc8; --l-e2e: #f07474; --l-dc: #9599f0; --l-finish: #4cc3cf;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f131a; --panel: #171c25; --fg: #e8ecf2; --muted: #9aa4b4; --rule: #2a313d; --track-planned: #171c25;
+  --l-found: #6b9cf5; --l-route: #f0a052; --l-trans: #4cc792; --l-apps: #de7cc8; --l-e2e: #f07474; --l-dc: #9599f0; --l-finish: #4cc3cf;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-display); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--l-found); outline-offset: 2px; border-radius: 3px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; line-height: 1.05; margin: 4px 0 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 13px; font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.top { display: grid; gap: 18px; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: baseline; }
+.stat b { font-family: var(--font-mono); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 13px; margin-left: 6px; }
+.here { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 15px; }
+.here .tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: var(--fg); color: var(--bg); }
+.note { font-size: 13px; color: var(--muted); }
+.bar { display: flex; gap: 3px; height: 12px; }
+.bar i { flex: 1; border-radius: 2px; background: var(--rule); position: relative; overflow: hidden; }
+.bar i.done { background: var(--c); }
+.bar i.current { background: var(--c); opacity: 0.45; }
+.bar i.gap { margin-left: 8px; }
+.dest { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.card h3 { margin: 0; font-size: 15px; font-weight: 600; text-wrap: balance; }
+.pips { display: flex; flex-wrap: wrap; gap: 5px; }
+.pip { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--muted); display: grid; place-items: center; font-family: var(--font-mono); font-size: 9px; color: var(--muted); text-decoration: none; }
+.pip.done { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.pip.current { border-color: var(--fg); color: var(--fg); box-shadow: 0 0 0 3px var(--rule); }
+.lines { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+.line { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 16px 10px; min-width: 0; }
+.line header { display: grid; gap: 2px; margin-bottom: 12px; }
+.line header .name { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
+.line header .name::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--c); flex: none; }
+.line header .sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); display: flex; justify-content: space-between; gap: 8px; }
+ol.stops { list-style: none; margin: 0; padding: 0; }
+.stop { position: relative; padding: 6px 0 10px 40px; min-height: 40px; }
+.stop::before { content: ""; position: absolute; left: 15px; top: 0; bottom: 0; width: 6px; background: var(--c); }
+.stop:first-child::before { top: 14px; }
+.stop:last-child::before { bottom: calc(100% - 14px); }
+.mark { position: absolute; left: 6px; top: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--track-planned); border: 4px solid var(--c); display: grid; place-items: center; }
+.stop.drill .mark { width: 16px; height: 16px; left: 10px; top: 8px; border-width: 3px; }
+.stop.project .mark { border-radius: 6px; width: 28px; height: 22px; left: 4px; top: 5px; }
+.stop.exam .mark { transform: rotate(45deg); border-radius: 4px; width: 20px; height: 20px; left: 8px; top: 6px; }
+.stop.capstone .mark { box-shadow: 0 0 0 3px var(--track-planned), 0 0 0 6px var(--c); }
+.stop.done .mark { background: var(--c); }
+.stop.done .mark::after { content: ""; width: 7px; height: 4px; border-left: 2px solid var(--panel); border-bottom: 2px solid var(--panel); transform: rotate(-45deg) translate(1px, -1px); }
+.stop.exam.done .mark::after { transform: rotate(-90deg); }
+.stop.current .mark { background: var(--fg); border-color: var(--fg); box-shadow: 0 0 0 4px var(--panel), 0 0 0 7px var(--c); }
+.stop .no { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.stop .units { letter-spacing: 0.02em; }
+.stop .you { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--fg); color: var(--bg); padding: 1px 6px; border-radius: 999px; }
+.stop a.title { display: block; font-size: 14.5px; font-weight: 600; text-decoration: none; line-height: 1.3; }
+.stop a.title:hover { text-decoration: underline; text-underline-offset: 3px; }
+.stop.done a.title { color: var(--muted); font-weight: 400; }
+.transfer { font-family: var(--font-mono); font-size: 11px; color: var(--muted); padding: 4px 0 4px 40px; border-top: 1px dashed var(--rule); margin-top: 2px; }
+.off { border-style: dashed; }
+.off .stop::before { background: repeating-linear-gradient(var(--rule) 0 6px, transparent 6px 11px); }
+.off .mark { border-color: var(--rule); }
+.off .stop span.t { color: var(--muted); font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 13px; color: var(--muted); align-items: center; }
+.legend .k { display: inline-flex; align-items: center; gap: 8px; }
+.legend .s { width: 16px; height: 16px; border: 3px solid var(--muted); border-radius: 50%; background: var(--panel); display: inline-block; }
+.legend .s.drill { width: 11px; height: 11px; border-width: 2px; }
+.legend .s.project { border-radius: 4px; width: 19px; height: 14px; }
+.legend .s.exam { transform: rotate(45deg); border-radius: 3px; width: 13px; height: 13px; }
+.legend .s.done { background: var(--muted); }
+.legend .s.current { background: var(--fg); border-color: var(--fg); }
+@media (prefers-reduced-motion: no-preference) {
+  .stop.current .mark { animation: ping 2.4s ease-out infinite; }
+  @keyframes ping { 0%, 60%, 100% { box-shadow: 0 0 0 4px var(--panel), 0 0 0 7px var(--c); } 30% { box-shadow: 0 0 0 4px var(--panel), 0 0 0 11px var(--c); } }
+}
+</style>
+
+<div class="wrap">
+  <section class="top" aria-labelledby="title">
+    <div>
+      <div class="eyebrow">__EYEBROW__</div>
+      <h1 id="title">Route map</h1>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="s-done">0</b><span>of <span id="s-total">58</span> lessons done</span></div>
+      <div class="stat"><b id="s-hops">58</b><span>hops to go</span></div>
+      <div class="stat"><b id="s-lines">0</b><span>of <span id="s-linec">0</span> lines complete</span></div>
+    </div>
+    <div class="here" id="here"></div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="note" id="sync">Loading progress from your tutor…</div>
+  </section>
+
+  <section aria-labelledby="dest-h" style="display:grid;gap:12px">
+    <h2 id="dest-h">Destinations: what the mission asks for</h2>
+    <div class="dest" id="dest"></div>
+  </section>
+
+  <section aria-labelledby="lines-h" style="display:grid;gap:12px">
+    <h2 id="lines-h">The lines</h2>
+    <div class="legend">
+      <span class="k"><i class="s"></i>Lesson</span>
+      <span class="k"><i class="s drill"></i>Worksheet drill</span>
+      <span class="k"><i class="s project"></i>Project milestone</span>
+      <span class="k"><i class="s exam"></i>Timed exam</span>
+      <span class="k"><i class="s current"></i>You are here</span>
+      <span class="k"><i class="s done"></i>Done</span>
+    </div>
+    <div class="lines" id="lines"></div>
+  </section>
+</div>
+
+<script>
+const LESSONS = __LESSONS__;
+const LINES = __LINES__;
+const DESTINATIONS = __DESTINATIONS__;
+const OFF_MAP = __OFF_MAP__;
+
+const pad = (n) => String(n).padStart(4, "0");
+const kind = (t) => t.startsWith("Drill:") ? "drill" : t.startsWith("Project") ? "project" : t.startsWith("Timed") ? "exam" : t.startsWith("Capstone:") ? "capstone" : "lesson";
+const lineOf = (n) => LINES.find((l) => n >= l.from && n <= l.to);
+const byNo = new Map(LESSONS.map((l) => [l.n, l]));
+let status = new Map();
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k === "style") e.setAttribute("style", v);
+    else if (k === "text") e.textContent = v;
+    else e.setAttribute(k, v);
+  }
+  for (const kid of kids) if (kid) e.append(kid);
+  return e;
+}
+
+function buildLines() {
+  const root = document.getElementById("lines");
+  LINES.forEach((line, i) => {
+    const ol = el("ol", { class: "stops" });
+    for (let n = line.from; n <= line.to; n++) {
+      const l = byNo.get(n);
+      const li = el("li", { class: "stop " + kind(l.t), id: "stop-" + n },
+        el("span", { class: "mark", "aria-hidden": "true" }),
+        el("div", { class: "no" }, el("span", { text: pad(n) }), el("span", { class: "units", text: l.u.join(" · ") })),
+        el("a", { class: "title", href: l.url, target: "_blank", rel: "noopener", text: l.t }));
+      ol.append(li);
+    }
+    const next = LINES[i + 1];
+    root.append(el("article", { class: "line", style: "--c: var(" + line.c + ")", id: "line-" + line.id },
+      el("header", {},
+        el("div", { class: "name", text: line.name }),
+        el("div", { class: "sub" }, el("span", { text: line.covers }), el("span", { id: "count-" + line.id, text: "0/" + (line.to - line.from + 1) }))),
+      ol,
+      next ? el("div", { class: "transfer", text: "Transfer to " + next.name + " ↓" }) : null));
+  });
+  const off = el("ol", { class: "stops" });
+  for (const [u, t] of OFF_MAP) off.append(el("li", { class: "stop" }, el("span", { class: "mark", "aria-hidden": "true" }), el("div", { class: "no", text: u }), el("span", { class: "t", text: t })));
+  root.append(el("article", { class: "line off", style: "--c: var(--rule)" },
+    el("header", {}, el("div", { class: "name", text: "Off the map" }), el("div", { class: "sub" }, el("span", { text: "Out of scope in your mission" }))), off));
+
+  const bar = document.getElementById("bar");
+  LINES.forEach((line, i) => {
+    for (let n = line.from; n <= line.to; n++) bar.append(el("i", { id: "bar-" + n, class: n === line.from && i ? "gap" : "", style: "--c: var(" + line.c + ")" }));
+  });
+
+  const dest = document.getElementById("dest");
+  for (const d of DESTINATIONS) {
+    const pips = el("div", { class: "pips" });
+    for (const n of d.lessons) pips.append(el("a", { class: "pip", "data-n": n, href: byNo.get(n).url, target: "_blank", rel: "noopener", title: pad(n) + " " + byNo.get(n).t, text: String(n) }));
+    dest.append(el("div", { class: "card" }, el("h3", { text: d.name }), pips, el("div", { class: "note", "data-dest": d.name })));
+  }
+}
+
+function render() {
+  const st = (n) => status.get(pad(n)) || "Planned";
+  let done = 0;
+  let current = null;
+  for (const l of LESSONS) {
+    const s = st(l.n);
+    if (s === "Done") done++;
+    if (s === "Current" && !current) current = l;
+    const cls = s === "Done" ? "done" : s === "Current" ? "current" : "";
+    const li = document.getElementById("stop-" + l.n);
+    li.classList.toggle("done", cls === "done");
+    li.classList.toggle("current", cls === "current");
+    li.querySelector(".you")?.remove();
+    if (cls === "current") li.querySelector(".no").append(el("span", { class: "you", text: "You are here" }));
+    const b = document.getElementById("bar-" + l.n);
+    b.classList.toggle("done", cls === "done");
+    b.classList.toggle("current", cls === "current");
+  }
+  if (!current) current = LESSONS.find((l) => st(l.n) !== "Done") || null;
+  let linesDone = 0;
+  for (const line of LINES) {
+    let d = 0;
+    for (let n = line.from; n <= line.to; n++) if (st(n) === "Done") d++;
+    const total = line.to - line.from + 1;
+    if (d === total) linesDone++;
+    document.getElementById("count-" + line.id).textContent = d + "/" + total + " done";
+  }
+  document.getElementById("s-done").textContent = done;
+  document.getElementById("s-total").textContent = LESSONS.length;
+  document.getElementById("s-hops").textContent = LESSONS.length - done;
+  document.getElementById("s-lines").textContent = linesDone;
+  document.getElementById("s-linec").textContent = LINES.length;
+  const here = document.getElementById("here");
+  here.replaceChildren();
+  if (current) {
+    here.append(el("span", { class: "tag", text: st(current.n) === "Current" ? "Now" : "Next" }),
+      el("a", { href: current.url, target: "_blank", rel: "noopener", text: pad(current.n) + " " + current.t }),
+      el("span", { class: "note", text: "on the " + lineOf(current.n).name + " line" }));
+  } else {
+    here.append(el("span", { class: "tag", text: "Arrived" }), el("span", { text: "Every lesson is done." }));
+  }
+  for (const p of document.querySelectorAll(".pip")) {
+    const s = st(Number(p.dataset.n));
+    p.classList.toggle("done", s === "Done");
+    p.classList.toggle("current", s === "Current");
+  }
+  for (const d of DESTINATIONS) {
+    const n = d.lessons.filter((x) => st(x) === "Done").length;
+    document.querySelector('[data-dest="' + d.name + '"]').textContent = n + " of " + d.lessons.length + " stations reached";
+  }
+}
+
+buildLines();
+render();
+
+(async () => {
+  const sync = document.getElementById("sync");
+  const db = window.claude?.use ? await window.claude.use("db") : null;
+  if (!db) {
+    sync.textContent = "Progress isn't available in this view. Open the map signed in to claude.ai to see which lessons are done.";
+    return;
+  }
+  db.collection("progress").onSnapshot((snap) => {
+    status = new Map(snap.docs.filter((d) => d.exists).map((d) => [d.id, String(d.data().status || "Planned")]));
+    sync.textContent = snap.empty ? "No progress recorded yet. Your tutor marks lessons here as you finish them." : "Progress from your tutor, updated after every session. Lesson pages open in Notion.";
+    render();
+  }, () => { sync.textContent = "Progress stopped updating. Reload the page to reconnect."; });
+})();
+</script>
