@@ -15,7 +15,7 @@ A private page titled `Tutor`, holding two databases:
 | Upstream | Notion, inside the topic's row page |
 | --- | --- |
 | `MISSION.md` | A `Mission` heading at the top of the page body, with MISSION-FORMAT's sections |
-| (none) | Child page `Handoff`: the last session's date and app, what it covered, the next lesson, cards due and when, open threads. Rewritten whole at every close with `ntn pages edit` |
+| (none) | Child page `Handoff`: the last session's date and app, what it covered, the Levels list (subskills 0 to 5 with evidence), the next lesson, cards due and when, open threads. Rewritten whole at every close with `ntn pages edit` |
 | `NOTES.md` | Child page `Notes`, which also records whether I've opted out of communities |
 | `GLOSSARY.md` | Database `Glossary`, whose description is GLOSSARY-FORMAT's topic line. Properties: Term (title), Definition (rich_text), Avoid (rich_text), Group (select), Note (rich_text, for a flagged ambiguity) |
 | `RESOURCES.md` | Database `Resources`: Title (title), URL (url), Group (select: Knowledge, Wisdom, Gap), Use for (rich_text) |
