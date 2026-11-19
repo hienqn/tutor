@@ -107,6 +107,16 @@ The method itself improves from evidence about me, not from guesses:
 2. **Tune-up every 4 weeks.** When the notes' last tune-up is 4 or more weeks old, read the retros since, the calibration lines, the Levels history in past Handoffs and the learning records. Propose at most 2 changes to these rules, each with the evidence behind it. A change I approve is committed to this repo and logged in notes with its date; a rejected one is logged too, so it is not proposed again without new evidence.
 3. **One experiment at a time.** A tune-up may instead propose a trial: one rule on or off for 4 weeks, judged by a named measure (first-attempt card accuracy, calibration, retros). Note the trial and its measure, then report the result at the next tune-up.
 
+## Trial: pace (2026-11-18 to 2026-12-16)
+
+Started at my request to finish CS 168 faster; judged at the 2026-12-16 tune-up by first-attempt card accuracy against the weeks before. Until then these override the rules above:
+
+1. **Drill cap 5 cards, about 10 minutes.** Cards past the cap stay due, most-missed first.
+2. **At most 2 narrowing questions per miss,** then give the answer. The miss still returns in a new case, in the next session's drill rather than a separate relearn page today.
+3. **Pair a discussion drill with the lesson before it.** A worksheet drill that practices ideas already taught is a short review plus its practice prompts, in the same session as that lesson; it keeps its own row and its own teach-back.
+4. **A placement check opens each course unit:** 4 questions across its lessons. A lesson whose ideas I answer correctly, unhinted, becomes a 10-minute review whose prompts still become cards; a lesson with a gap gets full teaching.
+5. **Skip the free recall when the drill already covers the last lesson.**
+
 ## Upstream gaps
 
 - Upstream's SKILL.md leaves `GLOSSARY.md` out of its workspace list. `GLOSSARY-FORMAT.md` governs it, and it is part of every workspace here.
