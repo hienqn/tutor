@@ -20,7 +20,7 @@ A private page titled `Tutor`, holding two databases:
 | `GLOSSARY.md` | Database `Glossary`, whose description is GLOSSARY-FORMAT's topic line. Properties: Term (title), Definition (rich_text), Avoid (rich_text), Group (select), Note (rich_text, for a flagged ambiguity) |
 | `RESOURCES.md` | Database `Resources`: Title (title), URL (url), Group (select: Knowledge, Wisdom, Gap), Use for (rich_text) |
 | `learning-records/` | Database `Learning Records`: Title (title), No. (number), Status (select: active, superseded), Superseded by (number), Evidence (rich_text); the record itself is the row's page body |
-| `lessons/` | Database `Lessons`, which is also the progress map: Title (title, `0001 <name>`), No. (number), Status (select: Planned, Current, Done), Unit (multi_select), Sources (rich_text, Course Map Keys). Each lesson is its row's page body |
+| `lessons/` | Database `Lessons`, which is also the progress map: Title (title, `0001 <name>`), No. (number), Status (select: Planned, Current, Done), Stage (select: Taught, Practiced, Taught back; where a Current lesson has got to), Unit (multi_select), Sources (rich_text, Course Map Keys). Each lesson is its row's page body |
 | `reference/` | Child page `Reference`, one sub-page per reference doc |
 | Course map (course topics, [COURSE.md](COURSE.md)) | Database `Course Map`: Title (title), Key (rich_text), Kind (select: Reading, Slides, Video, Worksheet, Solution, Homework, Project, Exam, Exam solution, Paper, Tool, Service), Access (select: public, gated, announced, moved), Unit (multi_select), Date (date), URL (url), Local (rich_text), Related (rich_text), Covers (rich_text), License (rich_text), Lesson (rich_text), Posted (date), Note (rich_text) |
 
